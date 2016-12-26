@@ -10,6 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -17,9 +18,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
+import android.text.format.DateFormat;
 import android.view.SurfaceHolder;
+import android.view.WindowInsets;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 public class SimpleFace extends CanvasWatchFaceService {
@@ -29,13 +35,17 @@ public class SimpleFace extends CanvasWatchFaceService {
         /* provide your watch face implementation */
         return new Engine();
     }
-
-
+    static final String COLON_STRING = ":";
+    private static final Typeface BOLD_TYPEFACE =
+            Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD);
+    private static final Typeface NORMAL_TYPEFACE =
+            Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
 
     private class Engine extends CanvasWatchFaceService.Engine {
 
         static final int MSG_UPDATE_TIME = 0;
-        private static final long INTERACTIVE_UPDATE_RATE_MS = 1000;
+        private static final long INTERACTIVE_UPDATE_RATE_MS = 500;
+
 
         Calendar mCalendar;
 
@@ -51,6 +61,17 @@ public class SimpleFace extends CanvasWatchFaceService {
         private boolean mRegisteredTimeZoneReceiver=false;
         private boolean mBurnInProtection;
         Bitmap mGrayBackgroundBitmap;
+        private float mXOffset,mYOffset;
+        String mAmString,mPmString;
+        Paint mDatePaint;
+        Paint mSecondPaint;
+        Paint mAmPmPaint;
+        Paint mColonPaint,LinePaint;
+        float mColonWidth,mLinehieght,mpadding;
+        Date mDate;
+        SimpleDateFormat mDayOfWeekFormat;
+        java.text.DateFormat mDateFormat;
+
 
         private void updateTimer() {
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
@@ -105,6 +126,17 @@ public class SimpleFace extends CanvasWatchFaceService {
 
         }
 
+        private Paint createTextPaint(int defaultInteractiveColor) {
+            return createTextPaint(defaultInteractiveColor, NORMAL_TYPEFACE);
+        }
+        private Paint createTextPaint(int defaultInteractiveColor, Typeface typeface) {
+            Paint paint = new Paint();
+            paint.setColor(defaultInteractiveColor);
+            paint.setTypeface(typeface);
+
+            paint.setAntiAlias(true);
+            return paint;
+        }
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
@@ -115,15 +147,23 @@ public class SimpleFace extends CanvasWatchFaceService {
             mGrayBackgroundBitmap=((BitmapDrawable)resources.getDrawable(R.drawable.bgg,null)).getBitmap();
 
             // create graphic styles
-            mHourPaint = new Paint();
-            mHourPaint.setARGB(255, 200, 200, 200);
-            mHourPaint.setStrokeWidth(5.0f);
-            mHourPaint.setAntiAlias(true);
-            mHourPaint.setStrokeCap(Paint.Cap.ROUND);
-            mMinutePaint=new Paint(mHourPaint);
+            mHourPaint = createTextPaint(Color.WHITE,BOLD_TYPEFACE);
+            mMinutePaint=createTextPaint(Color.WHITE);
+            mDatePaint = createTextPaint(Color.WHITE);
+            mYOffset=resources.getDimension(R.dimen.digital_y_offset);
+
+            mSecondPaint = createTextPaint(Color.WHITE);
+            mAmPmPaint = createTextPaint(Color.WHITE);
+            mColonPaint = createTextPaint(Color.WHITE);
+            mLinehieght=resources.getDimension(R.dimen.digital_line_height);
+            mpadding=resources.getDimension(R.dimen.content_padding_start);
+            LinePaint=new Paint();
+            LinePaint.setColor(Color.WHITE);
+            LinePaint.setStrokeWidth(1f);
 
 
 
+mDate=new Date();
             // allocate a Calendar to calculate local time using the UTC time and time zone
             mCalendar = Calendar.getInstance();
             setWatchFaceStyle(new WatchFaceStyle.Builder(SimpleFace.this)
@@ -132,6 +172,7 @@ public class SimpleFace extends CanvasWatchFaceService {
                             .BACKGROUND_VISIBILITY_INTERRUPTIVE)
                     .setShowSystemUiTime(false)
                     .build());
+            initFormats();
 
             
         }
@@ -143,6 +184,21 @@ public class SimpleFace extends CanvasWatchFaceService {
             mLowBitAmbient = properties.getBoolean(PROPERTY_LOW_BIT_AMBIENT, false);
             mBurnInProtection = properties.getBoolean(PROPERTY_BURN_IN_PROTECTION,
                     false);
+        }
+        private void initFormats() {
+            mDayOfWeekFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+            mDayOfWeekFormat.setCalendar(mCalendar);
+            mDateFormat = DateFormat.getDateFormat(SimpleFace.this);
+            mDateFormat.setCalendar(mCalendar);
+        }
+
+        String getdate()
+        {
+          String day=mDayOfWeekFormat.format(mDate).substring(0,3)+",";
+            String date=mDateFormat.format(mDate);
+
+
+            return day+date;
         }
 
         @Override
@@ -190,39 +246,96 @@ public class SimpleFace extends CanvasWatchFaceService {
             // Find the center. Ignore the window insets so that, on round watches
             // with a "chin", the watch face is centered on the entire screen, not
             // just the usable portion.
-            float centerX = width / 2f;
-            float centerY = height / 2f;
 
-            // Compute rotations and lengths for the clock hands.
-            float seconds = mCalendar.get(Calendar.SECOND) +
-                    mCalendar.get(Calendar.MILLISECOND) / 1000f;
-            float secRot = seconds / 60f * TWO_PI;
-            float minutes = mCalendar.get(Calendar.MINUTE) + seconds / 60f;
-            float minRot = minutes / 60f * TWO_PI;
-            float hours = mCalendar.get(Calendar.HOUR) + minutes / 60f;
-            float hrRot = hours / 12f * TWO_PI;
+            float x=mXOffset;
+            float y=mYOffset;
 
-            float secLength = centerX - 20;
-            float minLength = centerX - 40;
-            float hrLength = centerX - 80;
+            int min= mCalendar.get(Calendar.MINUTE);
+            int hour=mCalendar.get(Calendar.HOUR_OF_DAY);
+            String str_hour,str_minute;
+            if(hour<10)
+             str_hour="0"+hour;
+            else
+             str_hour=""+hour;
+            if(min<10)
+                str_minute="0"+min;
+            else
+                str_minute=""+min;
 
-            // Only draw the second hand in interactive mode.
-//            if (!isInAmbientMode()) {
-//                float secX = (float) Math.sin(secRot) * secLength;
-//                float secY = (float) -Math.cos(secRot) * secLength;
-//                canvas.drawLine(centerX, centerY, centerX + secX, centerY +
-//                        secY, mSecondPaint);
-//            }
+            canvas.drawText(str_hour,x,y,mHourPaint);
+            x+=mHourPaint.measureText(str_hour);
+            canvas.drawText(COLON_STRING,x,y,mColonPaint);
+            x+=mColonPaint.measureText(COLON_STRING);
+            canvas.drawText(str_minute,x,y,mMinutePaint);
+            y+=mLinehieght;
 
-            // Draw the minute and hour hands.
-            float minX = (float) Math.sin(minRot) * minLength;
-            float minY = (float) -Math.cos(minRot) * minLength;
-            canvas.drawLine(centerX, centerY, centerX + minX, centerY + minY,
-                    mMinutePaint);
-            float hrX = (float) Math.sin(hrRot) * hrLength;
-            float hrY = (float) -Math.cos(hrRot) * hrLength;
-            canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY,
-                    mHourPaint);
+            if (getPeekCardPosition().isEmpty() && !isInAmbientMode()) {
+                // Day of week
+
+                canvas.drawText(getdate(),mXOffset,y,mDatePaint);
+                y+=mLinehieght;
+                canvas.drawLine(mXOffset+mpadding*3,y,mXOffset+7*mpadding,y,LinePaint);
+
+            }
+
+            
+
+
+//            // Compute rotations and lengths for the clock hands.
+//            float seconds = mCalendar.get(Calendar.SECOND) +
+//                    mCalendar.get(Calendar.MILLISECOND) / 1000f;
+//            float secRot = seconds / 60f * TWO_PI;
+//            float minutes = mCalendar.get(Calendar.MINUTE) + seconds / 60f;
+//            float minRot = minutes / 60f * TWO_PI;
+//            float hours = mCalendar.get(Calendar.HOUR) + minutes / 60f;
+//            float hrRot = hours / 12f * TWO_PI;
+//
+//            float secLength = centerX - 20;
+//            float minLength = centerX - 40;
+//            float hrLength = centerX - 80;
+//
+//            // Only draw the second hand in interactive mode.
+////            if (!isInAmbientMode()) {
+////                float secX = (float) Math.sin(secRot) * secLength;
+////                float secY = (float) -Math.cos(secRot) * secLength;
+////                canvas.drawLine(centerX, centerY, centerX + secX, centerY +
+////                        secY, mSecondPaint);
+////            }
+//
+//            // Draw the minute and hour hands.
+//            float minX = (float) Math.sin(minRot) * minLength;
+//            float minY = (float) -Math.cos(minRot) * minLength;
+//            canvas.drawLine(centerX, centerY, centerX + minX, centerY + minY,
+//                    mMinutePaint);
+//            float hrX = (float) Math.sin(hrRot) * hrLength;
+//            float hrY = (float) -Math.cos(hrRot) * hrLength;
+//            canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY,
+//                    mHourPaint);
+        }
+
+        @Override
+        public void onApplyWindowInsets(WindowInsets insets) {
+
+            super.onApplyWindowInsets(insets);
+
+            // Load resources that have alternate values for round watches.
+            Resources resources = SimpleFace.this.getResources();
+            boolean isRound = insets.isRound();
+            mXOffset = resources.getDimension(isRound
+                    ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
+            float textSize = resources.getDimension(isRound
+                    ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
+            float amPmSize = resources.getDimension(isRound
+                    ? R.dimen.digital_am_pm_size_round : R.dimen.digital_am_pm_size);
+
+            mDatePaint.setTextSize(resources.getDimension(R.dimen.digital_date_text_size));
+            mHourPaint.setTextSize(textSize);
+            mMinutePaint.setTextSize(textSize);
+            mSecondPaint.setTextSize(textSize);
+            mAmPmPaint.setTextSize(amPmSize);
+            mColonPaint.setTextSize(textSize);
+
+            mColonWidth = mColonPaint.measureText(COLON_STRING);
         }
 
         @Override
