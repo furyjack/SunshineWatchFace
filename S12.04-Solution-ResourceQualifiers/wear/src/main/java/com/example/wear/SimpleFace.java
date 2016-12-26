@@ -54,7 +54,7 @@ public class SimpleFace extends CanvasWatchFaceService {
 
 
         // graphic objects
-        Bitmap mBackgroundBitmap;
+        Bitmap mBackgroundBitmap,artclear;
         Bitmap mBackgroundScaledBitmap;
         Paint mHourPaint;
         Paint mMinutePaint;
@@ -62,10 +62,10 @@ public class SimpleFace extends CanvasWatchFaceService {
         private boolean mBurnInProtection;
         Bitmap mGrayBackgroundBitmap;
         private float mXOffset,mYOffset;
-        String mAmString,mPmString;
+
         Paint mDatePaint;
         Paint mSecondPaint;
-        Paint mAmPmPaint;
+        Paint mTempaint;
         Paint mColonPaint,LinePaint;
         float mColonWidth,mLinehieght,mpadding;
         Date mDate;
@@ -145,15 +145,16 @@ public class SimpleFace extends CanvasWatchFaceService {
             Drawable backgroundDrawable = resources.getDrawable(R.drawable.bg, null);
             mBackgroundBitmap = ((BitmapDrawable) backgroundDrawable).getBitmap();
             mGrayBackgroundBitmap=((BitmapDrawable)resources.getDrawable(R.drawable.bgg,null)).getBitmap();
-
+            artclear=((BitmapDrawable)resources.getDrawable(R.drawable.ic_clear,null)).getBitmap();
             // create graphic styles
+
             mHourPaint = createTextPaint(Color.WHITE,BOLD_TYPEFACE);
             mMinutePaint=createTextPaint(Color.WHITE);
             mDatePaint = createTextPaint(Color.WHITE);
             mYOffset=resources.getDimension(R.dimen.digital_y_offset);
 
             mSecondPaint = createTextPaint(Color.WHITE);
-            mAmPmPaint = createTextPaint(Color.WHITE);
+            mTempaint = createTextPaint(Color.WHITE);
             mColonPaint = createTextPaint(Color.WHITE);
             mLinehieght=resources.getDimension(R.dimen.digital_line_height);
             mpadding=resources.getDimension(R.dimen.content_padding_start);
@@ -252,6 +253,8 @@ mDate=new Date();
 
             int min= mCalendar.get(Calendar.MINUTE);
             int hour=mCalendar.get(Calendar.HOUR_OF_DAY);
+            String high="26"+"\u00B0";
+            String low="16"+"\u00B0";
             String str_hour,str_minute;
             if(hour<10)
              str_hour="0"+hour;
@@ -275,10 +278,17 @@ mDate=new Date();
                 canvas.drawText(getdate(),mXOffset,y,mDatePaint);
                 y+=mLinehieght;
                 canvas.drawLine(mXOffset+mpadding*3,y,mXOffset+7*mpadding,y,LinePaint);
+                y+=mLinehieght-20f;
+                canvas.drawBitmap(artclear,mXOffset-2*mpadding,y,null);
+                x=mXOffset-2*mpadding+90;
+                y+=mLinehieght+20f;
+                canvas.drawText(high,x,y,mTempaint);
+                x+=mTempaint.measureText(high)+20;
+                canvas.drawText(low,x,y,mTempaint);
 
             }
 
-            
+
 
 
 //            // Compute rotations and lengths for the clock hands.
@@ -332,7 +342,7 @@ mDate=new Date();
             mHourPaint.setTextSize(textSize);
             mMinutePaint.setTextSize(textSize);
             mSecondPaint.setTextSize(textSize);
-            mAmPmPaint.setTextSize(amPmSize);
+            mTempaint.setTextSize(amPmSize);
             mColonPaint.setTextSize(textSize);
 
             mColonWidth = mColonPaint.measureText(COLON_STRING);
