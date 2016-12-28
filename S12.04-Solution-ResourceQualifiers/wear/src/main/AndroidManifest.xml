@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.wear.wear">
+    package="com.Sunshine">
 
     <uses-feature android:name="android.hardware.type.watch" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
         <service
-            android:name="wear.SimpleFace"
+            android:name="com.Sunshine.SimpleFace"
             android:label="@string/swf"
             android:permission="android.permission.BIND_WALLPAPER"
             >
@@ -35,7 +35,7 @@
 
 
         </service>
-        <service android:name="wear.datasyncService"
+        <service android:name="com.Sunshine.datasyncService"
             android:enabled="true"
             android:exported="true"
             >

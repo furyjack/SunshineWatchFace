@@ -5,7 +5,7 @@ android {
     buildToolsVersion '25.0.1'
 
     defaultConfig {
-        applicationId "com.wear.android.sunshine"
+        applicationId "com.Sunshine"
         minSdkVersion 10
         targetSdkVersion 25
         versionCode 1
@@ -28,7 +28,6 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:25.0.1'
     compile 'com.android.support:preference-v7:25.0.1'
 
-    compile 'com.android.support.constraint:constraint-layout:1.0.0-beta3'
 
     compile 'com.firebase:firebase-jobdispatcher:0.5.0'
     compile 'com.google.android.gms:play-services-wearable:10.0.1'
@@ -41,4 +40,5 @@ dependencies {
     androidTestCompile 'com.android.support.test:rules:0.5'
 
     wearApp project(':wear')
+    compile 'com.android.support.constraint:constraint-layout:1.0.0-beta4'
 }
