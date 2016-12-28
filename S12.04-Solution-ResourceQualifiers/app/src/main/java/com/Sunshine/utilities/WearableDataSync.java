@@ -32,10 +32,11 @@ public class WearableDataSync extends IntentService implements GoogleApiClient.O
 
     }
 
-    private void senddata(int high,int low) {
+    private void senddata(int high,int low,int id) {
         PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/wearData");
         putDataMapReq.getDataMap().putInt("high", high);
         putDataMapReq.getDataMap().putInt("low", low);
+        putDataMapReq.getDataMap().putInt("icon",id);
         PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
         Wearable.DataApi.putDataItem(mapiclient, putDataReq).setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
             @Override
@@ -50,10 +51,13 @@ public class WearableDataSync extends IntentService implements GoogleApiClient.O
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
 
-            int high=intent.getIntExtra("high",26);
-            int low=intent.getIntExtra("low",16);
 
-            senddata(high,low);
+            int high=intent.getIntExtra("high",28);
+            int low=intent.getIntExtra("low",16);
+            int wid=intent.getIntExtra("w_id",0);
+
+
+            senddata(high,low,wid);
 
 
         }

@@ -242,7 +242,15 @@ public class MainActivity extends AppCompatActivity implements
         mRecyclerView.smoothScrollToPosition(mPosition);
         if (data.getCount() != 0) showWeatherDataView();
 
-        startService(new Intent(MainActivity.this, WearableDataSync.class));
+        data.moveToPosition(1);
+        int high=(int)data.getDouble(data.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP));
+        int low=(int)data.getDouble(data.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP));
+        int id=data.getInt(data.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_WEATHER_ID));
+        Intent i=new Intent(MainActivity.this,WearableDataSync.class);
+        i.putExtra("high",high);
+        i.putExtra("low",low);
+        i.putExtra("w_id",id);
+        startService(i);
     }
 
     /**

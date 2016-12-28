@@ -1,7 +1,5 @@
 package com.Sunshine;
 
-import android.widget.Toast;
-
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMap;
@@ -13,20 +11,24 @@ public class datasyncService extends WearableListenerService  {
 
     @Override
         public void onDataChanged(DataEventBuffer dataEventBuffer) {
-        Toast.makeText(this, "recieved", Toast.LENGTH_SHORT).show();
+
             for(DataEvent dataevent:dataEventBuffer)
             {
+
                 if(dataevent.getType()==DataEvent.TYPE_CHANGED)
                 {
                     DataMap map= DataMapItem.fromDataItem(dataevent.getDataItem()).getDataMap();
                     String path= dataevent.getDataItem().getUri().getPath();
                     if(path.equals("/wearData"))
                     {
-                       String h=""+map.getInt("high");
-                       String l=""+map.getInt("low");
+                        String h=""+map.getInt("high");
+                        String l=""+map.getInt("low");
+                        int wid =map.getInt("icon");
                         PreferenceManager manager=new PreferenceManager(getApplicationContext());
                         manager.setPrefString("hightemp",h);
                         manager.setPrefString("lowtemp",l);
+                        manager.setPrefInt("icon_id",wid);
+
 
 
                     }

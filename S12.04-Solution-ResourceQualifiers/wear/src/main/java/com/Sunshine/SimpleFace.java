@@ -24,7 +24,6 @@ import android.view.WindowInsets;
 
 import com.google.android.gms.wearable.Asset;
 
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -83,6 +82,44 @@ public class SimpleFace extends CanvasWatchFaceService
         java.text.DateFormat mDateFormat;
 
 
+        public  int getSmallArtResourceIdForWeatherCondition(int weatherId) {
+
+        /*
+         * Based on weather code data for Open Weather Map.
+         */
+            if (weatherId >= 200 && weatherId <= 232) {
+                return R.drawable.ic_storm;
+            } else if (weatherId >= 300 && weatherId <= 321) {
+                return R.drawable.ic_light_rain;
+            } else if (weatherId >= 500 && weatherId <= 504) {
+                return R.drawable.ic_rain;
+            } else if (weatherId == 511) {
+                return R.drawable.ic_snow;
+            } else if (weatherId >= 520 && weatherId <= 531) {
+                return R.drawable.ic_rain;
+            } else if (weatherId >= 600 && weatherId <= 622) {
+                return R.drawable.ic_snow;
+            } else if (weatherId >= 701 && weatherId <= 761) {
+                return R.drawable.ic_fog;
+            } else if (weatherId == 761 || weatherId == 771 || weatherId == 781) {
+                return R.drawable.ic_storm;
+            } else if (weatherId == 800) {
+                return R.drawable.ic_clear;
+            } else if (weatherId == 801) {
+                return R.drawable.ic_light_clouds;
+            } else if (weatherId >= 802 && weatherId <= 804) {
+                return R.drawable.ic_cloudy;
+            } else if (weatherId >= 900 && weatherId <= 906) {
+                return R.drawable.ic_storm;
+            } else if (weatherId >= 958 && weatherId <= 962) {
+                return R.drawable.ic_storm;
+            } else if (weatherId >= 951 && weatherId <= 957) {
+                return R.drawable.ic_clear;
+            }
+
+
+            return R.drawable.ic_storm;
+        }
         private void updateTimer() {
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             if (shouldTimerBeRunning()) {
@@ -286,10 +323,14 @@ mDate=new Date();
                 PreferenceManager manager=new PreferenceManager(getApplicationContext());
                 high=manager.getPrefString("hightemp");
                 low=manager.getPrefString("lowtemp");
+                int id=manager.getPrefInt("icon_id");
+                int wid=getSmallArtResourceIdForWeatherCondition(id);
+                artclear=((BitmapDrawable)SimpleFace.this.getDrawable(wid)).getBitmap();
                 canvas.drawText(getdate(),mXOffset,y,mDatePaint);
                 y+=mLinehieght;
                 canvas.drawLine(mXOffset+mpadding*3,y,mXOffset+7*mpadding,y,LinePaint);
                 y+=mLinehieght-20f;
+
                 canvas.drawBitmap(artclear,mXOffset-2*mpadding,y,null);
                 x=mXOffset-2*mpadding+90;
                 y+=mLinehieght+20f;
