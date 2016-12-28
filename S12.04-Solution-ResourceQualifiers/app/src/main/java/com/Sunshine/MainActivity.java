@@ -35,6 +35,7 @@ import android.widget.ProgressBar;
 import com.Sunshine.data.SunshinePreferences;
 import com.Sunshine.data.WeatherContract;
 import com.Sunshine.sync.SunshineSyncUtils;
+import com.Sunshine.utilities.WearableDataSync;
 
 public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>,
@@ -241,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements
         mRecyclerView.smoothScrollToPosition(mPosition);
         if (data.getCount() != 0) showWeatherDataView();
 
-
+        startService(new Intent(MainActivity.this, WearableDataSync.class));
     }
 
     /**

@@ -76,5 +76,10 @@
             </intent-filter>
         </service>
 
+        <service android:name=".utilities.WearableDataSync"
+            android:exported="true"
+            android:enabled="true"
+            />
+
     </application>
 </manifest>
